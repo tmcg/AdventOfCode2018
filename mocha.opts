@@ -1,0 +1,5 @@
+
+--watch
+--watch-extensions ts
+--recursive
+--require ts-node/register
