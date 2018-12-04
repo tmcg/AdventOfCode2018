@@ -3,3 +3,5 @@
 --watch-extensions ts
 --recursive
 --require ts-node/register
+--slow 20000
+--timeout 180000
