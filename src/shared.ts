@@ -23,3 +23,9 @@ export class InputFile {
       return fs.readFileSync(this._fileName, 'utf8');
    }
 }
+
+export class Util {
+   static range(size : number, startAt : number = 0) : number[] {
+      return [...Array(size).keys()].map(i => i + startAt);
+   }
+}
