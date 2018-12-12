@@ -4,6 +4,20 @@
       {
          "type": "node",
          "request": "launch",
+         "name": "Mocha Single",
+         "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+         "args": [
+            "--opts",
+            "mocha.opts",
+            "${workspaceFolder}/src/**/advent12.spec.ts",
+         ],
+         "console": "integratedTerminal",
+         "internalConsoleOptions": "neverOpen",
+         "protocol": "inspector",
+      },
+      {
+         "type": "node",
+         "request": "launch",
          "name": "Mocha All",
          "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
          "args": [
@@ -14,6 +28,6 @@
          "console": "integratedTerminal",
          "internalConsoleOptions": "neverOpen",
          "protocol": "inspector",
-      }
+      },
    ]
 }
