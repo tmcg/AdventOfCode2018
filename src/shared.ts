@@ -24,6 +24,22 @@ export class InputFile {
    }
 }
 
+export class OutputFile {
+   _fileName : string;
+
+   constructor(fileName : string) {
+      this._fileName = fileName;
+   }
+
+   writeLines(lines : string[]) {
+      this.writeText(lines.join(os.EOL));
+   }
+
+   writeText(text : string) {
+      fs.writeFileSync(this._fileName, text, 'utf8');
+   }
+}
+
 export class Util {
    static range(size : number, startAt : number = 0) : number[] {
       return [...Array(size).keys()].map(i => i + startAt);
