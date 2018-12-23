@@ -102,57 +102,44 @@ class Solution22 implements ISolution {
       return `${pos.x}|${pos.y}|${tool}`;
    }
 
-   regionTools(type: RegionType): RescueTool[] {
-      switch(type) {
-         case RegionType.Rocky:
-         return [RescueTool.Torch, RescueTool.Gear];
-         case RegionType.Wet:
-         return [RescueTool.Gear, RescueTool.Nothing];
-         case RegionType.Narrow:
-         return [RescueTool.Torch, RescueTool.Nothing];
-      }
-      throw 'Invalid region type!';
+   getRegionTools(type: RegionType): RescueTool[] {
+      if (type === RegionType.Rocky) { return [RescueTool.Torch, RescueTool.Gear]; }
+      if (type === RegionType.Wet) { return [RescueTool.Gear, RescueTool.Nothing]; }
+      return [RescueTool.Torch, RescueTool.Nothing];
    }
 
    addNodes(g: Graph, cave: ICaveRegion[][], srcPos: IPoint) {
-      let srcType = cave[srcPos.y][srcPos.x].type;
-      let srcTools = this.regionTools(srcType);
-
       type EdgeRef = { [id: string]: number }
       type NodeRef = { [id: string]: EdgeRef }
 
-      function edge(nodeId: string, weight: number, ref: EdgeRef = {}): EdgeRef {
-         ref[nodeId] = weight;
-         return ref;
-      }
-
       // Add edges for changing allowable tools within this region
-      let nodes: NodeRef = {};
-      nodes[this.getNodeId(srcPos, srcTools[0])] = edge(this.getNodeId(srcPos, srcTools[1]), 7);
-      nodes[this.getNodeId(srcPos, srcTools[1])] = edge(this.getNodeId(srcPos, srcTools[0]), 7);
+      let srcTools = this.getRegionTools(cave[srcPos.y][srcPos.x].type);
+      let toolA = this.getNodeId(srcPos, srcTools[0]);
+      let toolB = this.getNodeId(srcPos, srcTools[1]);
 
-      let visits: IPoint[] = ([
-         {x: srcPos.x, y: srcPos.y + 1},
-         {x: srcPos.x, y: srcPos.y - 1},
-         {x: srcPos.x + 1, y: srcPos.y},
-         {x: srcPos.x - 1, y: srcPos.y},
+      let nodes: NodeRef = {};
+      nodes[toolA] = {};
+      nodes[toolA][toolB] = 7;
+      nodes[toolB] = {};
+      nodes[toolB][toolA] = 7;
+
+      let dests: IPoint[] = ([
+         {x: srcPos.x, y: srcPos.y + 1}, {x: srcPos.x, y: srcPos.y - 1},
+         {x: srcPos.x + 1, y: srcPos.y}, {x: srcPos.x - 1, y: srcPos.y},
       ]).filter((v) => v.y >= 0 && v.x >= 0 && v.y < cave.length && v.x < cave[0].length);
 
       // Find and add edges for valid adjacent regions
-      for(let destPos of visits) {
-         let destType = cave[destPos.y][destPos.x].type;
-         let destTools = this.regionTools(destType);
-
+      for(let destPos of dests) {
          // Only add edges for the intersection of tools allowed by src and dest
+         let destTools = this.getRegionTools(cave[destPos.y][destPos.x].type);
+
          for (let srcTool of srcTools.filter((t) => destTools.indexOf(t) >= 0)) {
-            let srcId = this.getNodeId(srcPos, srcTool);
-            edge(this.getNodeId(destPos, srcTool), 1, nodes[srcId] || {})
+            nodes[this.getNodeId(srcPos, srcTool)][this.getNodeId(destPos, srcTool)] = 1;
          }
       }
 
-      for (let nodeId in nodes) {
-         g.addNode(nodeId, nodes[nodeId]);
-      }
+      g.addNode(toolA, nodes[toolA]);
+      g.addNode(toolB, nodes[toolB]);
    }
 
    shortestPath(input: ICaveInput): number {
@@ -162,8 +149,8 @@ class Solution22 implements ISolution {
 
       let cave = this.getCaveRegions(input, 100, 100);
       let g = new Graph();
-      for(let y = 0; y < cave.length - 1; y++) {
-         for(let x = 0; x < cave[y].length - 1; x++) {
+      for(let y = 0; y < cave.length; y++) {
+         for(let x = 0; x < cave[y].length; x++) {
             this.addNodes(g, cave, {x, y});
          }
       }
@@ -177,17 +164,15 @@ class Solution22 implements ISolution {
       console.log('');
 
       for(let y = 0; y < cave.length; y++) {
-         let line = cave[y].map((r) => {
-            let ch = '';
-            switch (r.type) {
-               case RegionType.Rocky: ch = '.'; break;
-               case RegionType.Wet: ch = '='; break;
-               case RegionType.Narrow: ch = '|'; break;
-            }
-            return ch;
-         }).join('');
-
-         console.log(line);
+         console.log(
+            cave[y].map((r) => {
+               switch (r.type) {
+                  case RegionType.Rocky: return '.'; break;
+                  case RegionType.Wet: return '='; break;
+                  case RegionType.Narrow: return '|'; break;
+                  default: return '';
+               }
+            }).join(''));
       }
    }
 
